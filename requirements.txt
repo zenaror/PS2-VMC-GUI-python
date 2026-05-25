@@ -1,0 +1,2 @@
+# Requisitos Python para PS2-VMC-GUI
+pillow>=5.0.0
