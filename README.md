@@ -6,7 +6,7 @@ This project is based on the original GUI fork at https://github.com/MegaBitmap/
 
 ## Features
 
-- Read and manage PS2 virtual memory card files (`.bin`, `.vmc`)
+- Read and manage PS2 virtual memory card files (`.bin`, `.vmc`, `.ps2`, `.mcd`)
 - Import `.psu` / `.PSV` saves into a VMC file
 - Export VMC files to `.psu`
 - Designed for use with OPL and other PS2 memory card workflows
