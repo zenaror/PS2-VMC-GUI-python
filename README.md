@@ -4,6 +4,8 @@ A Python port of the PS2-VMC-GUI tool for managing PlayStation 2 virtual memory 
 
 This project is based on the original GUI fork at https://github.com/MegaBitmap/PS2-VMC-GUI and keeps the same functionality for reading and managing PS2 VMC files.
 
+> Note: This code was developed with assistance from AI tooling, including GitHub Copilot.
+
 ## Features
 
 - Read and manage PS2 virtual memory card files (`.bin`, `.vmc`, `.ps2`, `.mcd`)
