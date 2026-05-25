@@ -18,7 +18,7 @@ This project is based on the original GUI fork at https://github.com/MegaBitmap/
 3. Run:
 
 ```bash
-python vmc_gui.py
+run.bat
 ```
 
 On Linux, you can also use:
