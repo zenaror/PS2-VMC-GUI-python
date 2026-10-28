@@ -29,6 +29,8 @@ On Linux, you can also use:
 ./run.sh
 ```
 
+Use **Force Load** (between **Open File** and **Create New**) to attempt opening a card that fails the GUI file-size check. This skips only that check; `ps2vmc-tool` must still be able to read the card. The mode is retained when the current card is refreshed.
+
 ## Warning
 
 Importing multiple saves from the same game can overwrite previous save data.

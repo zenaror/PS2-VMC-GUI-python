@@ -44,6 +44,7 @@ class PS2VMCGui:
         self.default_dir = str(Path.home() / "Desktop")
         
         self.current_vmc = None
+        self.current_vmc_force = False
         self.box_art_enabled = False
         self.art_photo = None
         
@@ -108,6 +109,8 @@ class PS2VMCGui:
             try:
                 with zipfile.ZipFile(self.setup_files_zip, 'r') as zip_ref:
                     zip_ref.extractall(self.temp_dir)
+                if platform.system() == "Linux" and self.vmc_tool.is_file():
+                    self.vmc_tool.chmod(self.vmc_tool.stat().st_mode | 0o111)
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to extract setup files: {e}")
                 sys.exit(0)
@@ -125,6 +128,7 @@ class PS2VMCGui:
         ttk.Label(top_frame, text="Please Choose a VMC file:").pack(side=tk.LEFT)
         
         ttk.Button(top_frame, text="Open File", command=self.open_vmc_file).pack(side=tk.LEFT, padx=5)
+        ttk.Button(top_frame, text="Force Load", command=lambda: self.open_vmc_file(force=True)).pack(side=tk.LEFT, padx=5)
         ttk.Button(top_frame, text="Create New", command=self.create_new_vmc).pack(side=tk.LEFT, padx=5)
         ttk.Button(top_frame, text="Scan Folder", command=self.scan_folder).pack(side=tk.LEFT, padx=5)
         
@@ -271,7 +275,7 @@ class PS2VMCGui:
 
         return None
     
-    def open_vmc_file(self):
+    def open_vmc_file(self, force=False):
         """Open VMC file dialog"""
         file_path = filedialog.askopenfilename(
             initialdir=self.default_dir,
@@ -283,27 +287,33 @@ class PS2VMCGui:
         
         if file_path:
             self.default_dir = str(Path(file_path).parent)
-            self.load_vmc(file_path)
+            self.load_vmc(file_path, force=force)
     
-    def load_vmc(self, vmc_file):
+    def load_vmc(self, vmc_file, force=None):
         """Load and display VMC file info"""
         vmc_path = Path(vmc_file)
         
-        if not vmc_path.exists():
+        if not vmc_path.is_file():
             messagebox.showerror("Error", "VMC file not found")
             return
         
         vmc_size = vmc_path.stat().st_size
+        # Refreshes retain the mode used to open the current card. File dialogs
+        # pass an explicit mode so Open File always keeps normal validation.
+        if force is None:
+            force = self.current_vmc_force if vmc_file == self.current_vmc else False
         
-        # Validate size (4MB to 8GB, multiple of 4MB)
-        if vmc_size <= 0 or vmc_size > 0x20000000 or (vmc_size % 0x400000) != 0:
+        # Validate size (4 MiB to 512 MiB, multiple of 4 MiB).
+        if not force and (vmc_size <= 0 or vmc_size > 0x20000000 or (vmc_size % 0x400000) != 0):
             messagebox.showerror("Error", 
                 f"The Selected VMC File is either too big, too small, or not 4MB or 8MB aligned.\n"
-                f"The VMC File Size is {vmc_size / 1024 / 1024:.2f} MB.")
+                f"The VMC File Size is {vmc_size / 1024 / 1024:.2f} MB.\n"
+                "Use Force Load to attempt opening it without the size check.")
             return
         
         self.current_vmc = vmc_file
-        self.label_vmc.config(text=vmc_file)
+        self.current_vmc_force = force
+        self.label_vmc.config(text=f"{vmc_file} (Force Load)" if force else vmc_file)
         
         # Get VMC info
         tool_path = self.get_vmc_tool_path()
@@ -315,6 +325,10 @@ class PS2VMCGui:
         
         self.text_vmc_info.config(state=tk.NORMAL)
         self.text_vmc_info.delete(1.0, tk.END)
+        for item in self.vmc_listview.get_children():
+            self.vmc_listview.delete(item)
+        if force:
+            self.text_vmc_info.insert(tk.END, "Force Load: file size validation skipped.\n")
         
         if "no PS2 Memory Card detected" in info_output or "Error" in info_output:
             self.text_vmc_info.insert(tk.END, info_output + "\nThe VMC file is unreadable.")
